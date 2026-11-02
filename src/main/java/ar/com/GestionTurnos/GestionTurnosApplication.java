@@ -1,6 +1,8 @@
 package ar.com.GestionTurnos;
 
+import ar.com.GestionTurnos.dao.IRolesDao;
 import ar.com.GestionTurnos.dao.IUsuariosDao;
+import ar.com.GestionTurnos.entities.Roles;
 import ar.com.GestionTurnos.entities.Usuarios;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -16,15 +18,25 @@ public class GestionTurnosApplication {
 		SpringApplication.run(GestionTurnosApplication.class, args);
 	}
 	@Bean
-	CommandLineRunner initData(IUsuariosDao usuarioDao) {
+	CommandLineRunner initData(IUsuariosDao usuarioDao, IRolesDao rolDao) {
 		return args -> {
-			// Reemplaza "admin" y "1234" con el usuario y contraseña que prefieras usar para entrar
 			if (usuarioDao.count() == 0) {
+				// Primero asegúrate de tener o crear un rol (ej. Rol adminRol = rolRepository.findByNombre("ADMIN"); u otro método)
+				// O si tu rol es una entidad que ya existe, búscala o guárdala:
+				Roles rolAdmin = rolDao.findAll().stream().findFirst().orElseGet(() -> {
+					Roles r = new Roles();
+					r.setDescrip("Administrador"); // Ajusta según el campo de tu entidad Rol
+					return rolDao.save(r);
+				});
+
 				Usuarios admin = new Usuarios();
-				admin.setUsername("admin"); // Ajusta el nombre del campo según tu entidad
-				admin.setPassword("Jakarta89"); // Ajusta según tu entidad (contraseña)
+				admin.setUsername("admin");
+				admin.setPassword("1234"); // O password hasheado si usas Spring Security
+				admin.setRol(rolAdmin); // ¡Asignamos el rol obligatorio!
+
 				usuarioDao.save(admin);
 			}
 		};
 	}
-}
+	}
+
